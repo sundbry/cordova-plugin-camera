@@ -49,8 +49,13 @@ function takePicture(success, error, opts) {
 function capture(success, errorCallback) {
     var localMediaStream;
 
+    var container = document.createElement('div');
     var video = document.createElement('video');
     var button = document.createElement('button');
+
+    container.setAttribute('class', 'cordova-plugin-camera');
+    container.appendChild(video);
+    container.appendChild(button);
 
     video.width = 320;
     video.height = 240;
@@ -66,9 +71,11 @@ function capture(success, errorCallback) {
         imageData = imageData.replace('data:image/png;base64,', '');
 
         // stop video stream, remove video and button
-        localMediaStream.stop();
-        video.parentNode.removeChild(video);
-        button.parentNode.removeChild(button);
+        var tracks = localMediaStream.getTracks();
+        for (var i = 0; i < tracks.length; i++) {
+          localMediaStream.getTracks()[i].stop();
+        }
+        document.body.removeChild(container);
 
         return success(imageData);
     }
@@ -81,10 +88,8 @@ function capture(success, errorCallback) {
     var successCallback = function(stream) {
         localMediaStream = stream;
         video.src = window.URL.createObjectURL(localMediaStream);
+        document.body.appendChild(container);
         video.play();
-
-        document.body.appendChild(video);
-        document.body.appendChild(button);
     }
 
     if (navigator.getUserMedia) {
